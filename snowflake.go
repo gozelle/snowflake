@@ -1,10 +1,10 @@
 package snowflake
 
 import (
-	"time"
-	"sync"
 	"errors"
 	"strconv"
+	"sync"
+	"time"
 )
 
 const (
@@ -45,12 +45,12 @@ type Generator struct {
 }
 
 func (g *Generator) Generate() (*ID, error) {
-
+	
 	g.mu.Lock()
 	defer g.mu.Unlock()
-
+	
 	now := time.Now().UnixNano() / 1e6
-
+	
 	if g.tick == now {
 		g.sequence++
 		if g.sequence > g.maxSequence {
@@ -61,15 +61,15 @@ func (g *Generator) Generate() (*ID, error) {
 	} else {
 		g.sequence = 0
 	}
-
+	
 	ts := now - g.options.Epoch
-
+	
 	if ts > g.maxTs {
 		return nil, errors.New("time use up")
 	}
-
+	
 	g.tick = now
-
+	
 	return &ID{
 		id: ts<<(g.options.NodeBits+g.options.SequenceBits) |
 			int64(g.options.Node)<<g.options.SequenceBits |
@@ -83,13 +83,13 @@ func (g *Generator) EndAt() string {
 }
 
 func NewGenerator(ops Options) (*Generator, error) {
-
+	
 	maxNode := uint16(1<<ops.NodeBits - 1)
-
+	
 	if ops.Node > maxNode {
 		return nil, errors.New("node id greater")
 	}
-
+	
 	return &Generator{
 		mu:          sync.Mutex{},
 		options:     ops,
@@ -102,7 +102,7 @@ func NewGenerator(ops Options) (*Generator, error) {
 }
 
 func DefaultGenerator(node uint16) (*Generator, error) {
-
+	
 	ops := Options{
 		Node:         node,
 		TsBits:       DefaultTsBits,
@@ -110,6 +110,6 @@ func DefaultGenerator(node uint16) (*Generator, error) {
 		SequenceBits: DefaultSequenceBits,
 		Epoch:        DefaultEpoch,
 	}
-
+	
 	return NewGenerator(ops)
 }
