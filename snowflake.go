@@ -18,7 +18,7 @@ type ID struct {
 	id int64
 }
 
-func (i ID) GetInt64() int64 {
+func (i ID) Int64() int64 {
 	return i.id
 }
 
