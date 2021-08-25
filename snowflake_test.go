@@ -1,17 +1,17 @@
-package snowflake
+package _uuid
 
 import (
 	"testing"
 )
 
 func TestDefaultGenerator(t *testing.T) {
-	gen, err := DefaultGenerator(1)
+	gen, err := NewSnowflake(1)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-
-	id, e := gen.Generate()
+	
+	id, e := gen.ID()
 	if e != nil {
 		t.Error(e)
 		return

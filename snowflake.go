@@ -1,4 +1,4 @@
-package snowflake
+package _uuid
 
 import (
 	"errors"
@@ -14,6 +14,10 @@ const (
 	DefaultEpoch        = 1136214245000 // 2006-01-02 15:04:05
 )
 
+var (
+	SnowZero, _ = NewSnowflake(0)
+)
+
 type ID struct {
 	id int64
 }
@@ -26,7 +30,7 @@ func (i ID) String() string {
 	return strconv.FormatInt(i.id, 10)
 }
 
-type Options struct {
+type SnowOptions struct {
 	Node         uint16
 	TsBits       uint8
 	NodeBits     uint8
@@ -34,9 +38,9 @@ type Options struct {
 	Epoch        int64
 }
 
-type Generator struct {
+type Snowflake struct {
 	mu          sync.Mutex
-	options     Options
+	options     SnowOptions
 	tick        int64
 	sequence    uint16
 	maxTs       int64
@@ -44,7 +48,7 @@ type Generator struct {
 	maxSequence uint16
 }
 
-func (g *Generator) Generate() (*ID, error) {
+func (g *Snowflake) ID() (*ID, error) {
 	
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -77,12 +81,12 @@ func (g *Generator) Generate() (*ID, error) {
 	}, nil
 }
 
-func (g *Generator) EndAt() string {
+func (g *Snowflake) EndAt() string {
 	endAt := (g.options.Epoch + int64(1)<<g.options.TsBits) / 1e3
 	return time.Unix(endAt, 0).Format("2006-01-02 15:04:05")
 }
 
-func NewGenerator(ops Options) (*Generator, error) {
+func NewSnowflakeWithOptions(ops SnowOptions) (*Snowflake, error) {
 	
 	maxNode := uint16(1<<ops.NodeBits - 1)
 	
@@ -90,7 +94,7 @@ func NewGenerator(ops Options) (*Generator, error) {
 		return nil, errors.New("node id greater")
 	}
 	
-	return &Generator{
+	return &Snowflake{
 		mu:          sync.Mutex{},
 		options:     ops,
 		tick:        0,
@@ -101,9 +105,9 @@ func NewGenerator(ops Options) (*Generator, error) {
 	}, nil
 }
 
-func DefaultGenerator(node uint16) (*Generator, error) {
+func NewSnowflake(node uint16) (*Snowflake, error) {
 	
-	ops := Options{
+	ops := SnowOptions{
 		Node:         node,
 		TsBits:       DefaultTsBits,
 		NodeBits:     DefaultNodeBits,
@@ -111,5 +115,5 @@ func DefaultGenerator(node uint16) (*Generator, error) {
 		Epoch:        DefaultEpoch,
 	}
 	
-	return NewGenerator(ops)
+	return NewSnowflakeWithOptions(ops)
 }
