@@ -1,3 +1,3 @@
-module github.com/koyeo/_uuid
+module github.com/gozelle/snowflake
 
 go 1.15
