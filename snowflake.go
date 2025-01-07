@@ -1,4 +1,4 @@
-package _uuid
+package snowflake
 
 import (
 	"errors"
@@ -48,13 +48,13 @@ type Snowflake struct {
 	maxSequence uint16
 }
 
-func (g *Snowflake) ID() (*ID, error) {
-	
+func (g *Snowflake) NewID() (*ID, error) {
+
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	
+
 	now := time.Now().UnixNano() / 1e6
-	
+
 	if g.tick == now {
 		g.sequence++
 		if g.sequence > g.maxSequence {
@@ -65,15 +65,15 @@ func (g *Snowflake) ID() (*ID, error) {
 	} else {
 		g.sequence = 0
 	}
-	
+
 	ts := now - g.options.Epoch
-	
+
 	if ts > g.maxTs {
 		return nil, errors.New("time use up")
 	}
-	
+
 	g.tick = now
-	
+
 	return &ID{
 		id: ts<<(g.options.NodeBits+g.options.SequenceBits) |
 			int64(g.options.Node)<<g.options.SequenceBits |
@@ -87,13 +87,13 @@ func (g *Snowflake) EndAt() string {
 }
 
 func NewSnowflakeWithOptions(ops SnowOptions) (*Snowflake, error) {
-	
+
 	maxNode := uint16(1<<ops.NodeBits - 1)
-	
+
 	if ops.Node > maxNode {
 		return nil, errors.New("node id greater")
 	}
-	
+
 	return &Snowflake{
 		mu:          sync.Mutex{},
 		options:     ops,
@@ -106,7 +106,6 @@ func NewSnowflakeWithOptions(ops SnowOptions) (*Snowflake, error) {
 }
 
 func NewSnowflake(node uint16) (*Snowflake, error) {
-	
 	ops := SnowOptions{
 		Node:         node,
 		TsBits:       DefaultTsBits,
@@ -114,6 +113,6 @@ func NewSnowflake(node uint16) (*Snowflake, error) {
 		SequenceBits: DefaultSequenceBits,
 		Epoch:        DefaultEpoch,
 	}
-	
+
 	return NewSnowflakeWithOptions(ops)
 }
